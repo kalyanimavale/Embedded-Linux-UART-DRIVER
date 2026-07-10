@@ -1,0 +1,24 @@
+HardwareSerial uart(2);
+
+void setup()
+{
+    Serial.begin(115200);
+
+    uart.begin(115200,
+               SERIAL_8N1,
+               16,
+               17);
+
+    Serial.println("UART Started");
+}
+
+void loop()
+{
+    while(uart.available())
+    {
+        char c = uart.read();
+
+        Serial.print("Received : ");
+        Serial.println(c);
+    }
+}
