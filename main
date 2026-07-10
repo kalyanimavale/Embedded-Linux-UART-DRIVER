@@ -1,0 +1,57 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<fcntl.h>
+#include<termios.h>
+#include<string.h>
+
+int main()
+{
+    int uart;
+
+    struct termios tty;
+
+    uart=open("/dev/Serial0",
+              O_RDWR | O_NOCTTY);
+
+    if(uart<0)
+    {
+        printf("Cannot Open UART\n");
+        return -1;
+    }
+
+    printf("UART Open Success\n");
+
+    tcgetattr(uart,&tty);
+
+    cfsetospeed(&tty,B115200);
+    cfsetispeed(&tty,B115200);
+
+    tty.c_cflag |= (CLOCAL | CREAD);
+
+    tty.c_cflag &= ~PARENB;
+    tty.c_cflag &= ~CSTOPB;
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;
+
+    tty.c_iflag=0;
+    tty.c_oflag=0;
+    tty.c_lflag=0;
+
+    tcsetattr(uart,TCSANOW,&tty);
+
+    char data[]="HELLO";
+
+    while(1)
+    {
+        for(int i=0;i<strlen(data);i++)
+        {
+            write(uart,&data[i],1);
+
+            printf("Sending : %c\n",data[i]);
+
+            sleep(1);
+        }
+    }
+
+    close(uart);
+}
