@@ -1,0 +1,364 @@
+# Raspberry Pi 4 ↔ ESP32 UART Communication Using Linux Inbuilt UART Driver
+
+## Project Overview
+
+This project demonstrates **UART (Universal Asynchronous Receiver Transmitter) communication** between a **Raspberry Pi 4 Model B** running **Embedded Linux (Debian Bookworm)** and an **ESP32** using the **Linux inbuilt UART driver (PL011 / Mini UART)**.
+
+The objective is to understand the Linux serial communication stack, configure UART on Raspberry Pi, and implement reliable full-duplex communication with an ESP32.
+
+---
+
+# Objectives
+
+* Understand Linux UART architecture.
+* Configure UART on Raspberry Pi.
+* Learn the Linux TTY subsystem.
+* Perform UART communication using POSIX APIs.
+* Interface Raspberry Pi with ESP32.
+* Implement UART transmit and receive.
+* Build a reusable UART communication library.
+* Understand UART debugging techniques.
+
+---
+
+# Hardware Requirements
+
+* Raspberry Pi 4 Model B
+* MicroSD Card (Debian Bookworm OS)
+* ESP32 Development Board
+* USB Cable
+* Jumper Wires
+* Ubuntu/Linux PC
+
+---
+
+# Software Requirements
+
+### Raspberry Pi
+
+* Debian Bookworm (64-bit)
+* GCC Compiler
+* Make
+* Minicom
+* Screen
+
+### ESP32
+
+* Arduino IDE
+* ESP32 Board Package
+
+---
+
+# Project Architecture
+
+```text
+                 Raspberry Pi 4
+          --------------------------
+          User Application (C)
+                  |
+            POSIX APIs
+                  |
+          Linux TTY Subsystem
+                  |
+         PL011 / Mini UART Driver
+                  |
+            UART Hardware
+                  |
+      TX -------------------- RX
+      RX -------------------- TX
+      GND ------------------ GND
+                  |
+                ESP32
+           HardwareSerial
+```
+
+---
+
+# UART Communication Flow
+
+```text
+Application
+
+↓
+
+write()
+
+↓
+
+POSIX API
+
+↓
+
+TTY Subsystem
+
+↓
+
+UART Driver
+
+↓
+
+UART Registers
+
+↓
+
+GPIO Pins
+
+↓
+
+ESP32 UART
+
+↓
+
+Serial Monitor
+```
+
+---
+
+# UART Pin Connections
+
+| Raspberry Pi | ESP32        |
+| ------------ | ------------ |
+| GPIO14 (TX)  | GPIO16 (RX2) |
+| GPIO15 (RX)  | GPIO17 (TX2) |
+| GND          | GND          |
+
+---
+
+# Raspberry Pi UART Configuration
+
+Enable UART using:
+
+```bash
+sudo raspi-config
+```
+
+Navigate:
+
+```
+Interface Options
+    ↓
+Serial Port
+```
+
+Configure:
+
+```
+Login Shell over Serial : No
+
+Serial Hardware : Yes
+```
+
+Reboot:
+
+```bash
+sudo reboot
+```
+
+Verify:
+
+```bash
+ls -l /dev/serial0
+
+readlink -f /dev/serial0
+
+dmesg | grep tty
+```
+
+---
+
+# Project Directory Structure
+
+```text
+UART_Project/
+
+│
+├── README.md
+├── Makefile
+├── uart.c
+├── uart.h
+├── main.c
+├── esp32/
+│     └── uart_receiver.ino
+└── docs/
+```
+
+---
+
+# Build Instructions
+
+Compile:
+
+```bash
+make
+```
+
+or
+
+```bash
+gcc main.c uart.c -o uart_tx
+```
+
+Run:
+
+```bash
+sudo ./uart_tx
+```
+
+---
+
+# ESP32 Program
+
+1. Open Arduino IDE.
+2. Select ESP32 Dev Module.
+3. Upload the receiver firmware.
+4. Open Serial Monitor.
+5. Set baud rate to **115200**.
+
+---
+
+# Expected Output
+
+## Raspberry Pi Terminal
+
+```text
+UART Open Success
+
+Sending : H
+Sending : E
+Sending : L
+Sending : L
+Sending : O
+```
+
+## ESP32 Serial Monitor
+
+```text
+UART Started
+
+Received : H
+Received : E
+Received : L
+Received : L
+Received : O
+```
+
+---
+
+# Linux Concepts Covered
+
+* Linux TTY Subsystem
+* UART Hardware
+* UART Registers
+* PL011 UART
+* Mini UART
+* UART Interrupts
+* Polling vs Interrupt-Driven I/O
+* Ring Buffer
+* Full-Duplex Communication
+* UART Protocol Framing
+* CRC
+* POSIX APIs
+* Multithreading
+* Non-Blocking I/O
+* UART Debugging
+
+---
+
+# Important POSIX APIs
+
+| Function    | Description                 |
+| ----------- | --------------------------- |
+| open()      | Open UART device            |
+| close()     | Close UART device           |
+| read()      | Receive data                |
+| write()     | Transmit data               |
+| tcgetattr() | Get UART configuration      |
+| tcsetattr() | Configure UART              |
+| select()    | Monitor UART events         |
+| poll()      | Event polling               |
+| fcntl()     | Configure non-blocking mode |
+| ioctl()     | Device control              |
+
+---
+
+# UART Debugging Commands
+
+Check UART devices:
+
+```bash
+ls /dev/tty*
+```
+
+Check serial mapping:
+
+```bash
+ls -l /dev/serial0
+```
+
+Find actual UART:
+
+```bash
+readlink -f /dev/serial0
+```
+
+Configure UART:
+
+```bash
+stty -F /dev/serial0 115200
+```
+
+Display UART configuration:
+
+```bash
+stty -F /dev/serial0 -a
+```
+
+Monitor UART:
+
+```bash
+minicom -D /dev/serial0 -b 115200
+```
+
+Kernel messages:
+
+```bash
+dmesg | grep tty
+```
+
+---
+
+# Learning Outcomes
+
+After completing this project, you will be able to:
+
+* Configure UART on Raspberry Pi.
+* Understand the Linux serial driver stack.
+* Use POSIX APIs for UART communication.
+* Communicate between Raspberry Pi and ESP32.
+* Perform full-duplex UART communication.
+* Debug serial interfaces using Linux tools.
+* Understand the role of Linux UART drivers and the TTY subsystem.
+
+---
+
+# Future Enhancements
+
+* Full-duplex communication.
+* Packet-based protocol.
+* CRC implementation.
+* Ring buffer implementation.
+* Multi-threaded UART communication.
+* Non-blocking I/O using `select()` and `poll()`.
+* UART communication library (`uart.c` / `uart.h`).
+* Interrupt-driven reception.
+* File transfer over UART.
+* Sensor data acquisition through UART.
+* Linux service for continuous UART monitoring.
+
+---
+
+# Author
+
+**Kalyani Mavale**
+
+Embedded Linux | Device Drivers | Edge AI | Raspberry Pi | ESP32
